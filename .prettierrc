@@ -1,1 +1,8 @@
-{ "trailingComma": "all", "tabWidth": 2, "semi": true, "printWidth": 100 }
+{
+  "plugins": ["prettier-plugin-organize-imports"],
+  "experimentalTernaries": true,
+  "trailingComma": "all",
+  "tabWidth": 2,
+  "semi": true,
+  "printWidth": 100
+}

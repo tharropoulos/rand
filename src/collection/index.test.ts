@@ -1,9 +1,9 @@
-import { expectTypeOf, describe, it } from "vitest";
-import { Base64, defineCollectionSchema, InferNativeType } from ".";
+import { describe, expectTypeOf, it } from "vitest";
+import { Base64, defineCollection, InferNativeType } from ".";
 
-describe("defineCollectionSchema tests", () => {
+describe("defineCollection tests", () => {
   it("can't have an optional default sorting field", () => {
-    defineCollectionSchema({
+    defineCollection({
       name: "test",
       fields: {
         field: {
@@ -13,12 +13,12 @@ describe("defineCollectionSchema tests", () => {
           name: "field",
         },
       },
-      // @ts-expect-error
+      // @ts-expect-error This is erroring as expected
       default_sorting_field: "field",
     });
   });
   it("can't have a string that's not sorted as a default sorting field", () => {
-    defineCollectionSchema({
+    defineCollection({
       name: "test",
       fields: {
         field: {
@@ -26,12 +26,12 @@ describe("defineCollectionSchema tests", () => {
           name: "field",
         },
       },
-      // @ts-expect-error
+      // @ts-expect-error This is erroring as expected
       default_sorting_field: "field",
     });
   });
   it("can't have a num field as a default sorting field", () => {
-    defineCollectionSchema({
+    defineCollection({
       name: "test",
       fields: {
         field: {
@@ -40,12 +40,12 @@ describe("defineCollectionSchema tests", () => {
           name: "field",
         },
       },
-      // @ts-expect-error
+      // @ts-expect-error This is erroring as expected
       default_sorting_field: "field",
     });
   });
   it("can have a num field as a default sorting field", () => {
-    defineCollectionSchema({
+    defineCollection({
       name: "test",
       fields: {
         field: {
@@ -57,7 +57,7 @@ describe("defineCollectionSchema tests", () => {
     });
   });
   it("can have a string field that's sorted as a default sorting field", () => {
-    defineCollectionSchema({
+    defineCollection({
       name: "test",
       fields: {
         field: {
@@ -70,8 +70,8 @@ describe("defineCollectionSchema tests", () => {
     });
   });
   it("can't have a nested object field without nested fields enabled", () => {
-    // @ts-expect-error
-    defineCollectionSchema({
+    // @ts-expect-error This is erroring as expected
+    defineCollection({
       name: "test",
       fields: {
         field: {
@@ -81,7 +81,7 @@ describe("defineCollectionSchema tests", () => {
       },
     });
 
-    defineCollectionSchema({
+    defineCollection({
       name: "test",
       fields: {
         field: {
@@ -89,12 +89,12 @@ describe("defineCollectionSchema tests", () => {
           name: "field",
         },
       },
-      // @ts-expect-error
+      // @ts-expect-error This is erroring as expected
       enable_nested_fields: false,
     });
   });
   it("can have a nested object field with nested fields enabled", () => {
-    defineCollectionSchema({
+    defineCollection({
       name: "test",
       fields: {
         field: {
@@ -106,23 +106,23 @@ describe("defineCollectionSchema tests", () => {
     });
   });
   it("can't have a field's name not matching the key", () => {
-    defineCollectionSchema({
+    defineCollection({
       name: "test",
       fields: {
         field: {
-          // @ts-expect-error
-          type: "string",
-          // @ts-expect-error
+          // @ts-expect-error This is erroring as expected
+          type: "float",
+          // @ts-expect-error This is erroring as expected
           name: "not_field",
         },
       },
     });
   });
   it("can't have a non-indexed-field facetted by", () => {
-    defineCollectionSchema({
+    defineCollection({
       name: "test",
       fields: {
-        // @ts-expect-error
+        // @ts-expect-error This is erroring as expected
         field: {
           type: "string",
           name: "field",
@@ -132,11 +132,10 @@ describe("defineCollectionSchema tests", () => {
       },
     });
   });
-  it("can't have a non-index field sorted by", () => {
-    defineCollectionSchema({
+  it("can have a non-index field sorted by", () => {
+    defineCollection({
       name: "test",
       fields: {
-        // @ts-expect-error
         field: {
           type: "string",
           name: "field",
@@ -147,7 +146,7 @@ describe("defineCollectionSchema tests", () => {
     });
   });
   it("can have a facet set to true if the index is undefined or true", () => {
-    defineCollectionSchema({
+    defineCollection({
       name: "test",
       fields: {
         field: {
@@ -165,7 +164,7 @@ describe("defineCollectionSchema tests", () => {
     });
   });
   it("can have a sort set to true if the index is undefined or true", () => {
-    defineCollectionSchema({
+    defineCollection({
       name: "test",
       fields: {
         field: {
@@ -182,11 +181,54 @@ describe("defineCollectionSchema tests", () => {
       },
     });
   });
+  it("can have an embedding field", () => {
+    defineCollection({
+      name: "test",
+      fields: {
+        field: {
+          type: "string",
+          name: "field",
+        },
+        field2: {
+          name: "field2",
+          type: "float[]",
+          embed: {
+            from: ["field"],
+            model_config: {
+              model_name: "test",
+            },
+          },
+        },
+      },
+    });
+  });
+  it("can't have an embedding field with a type other than float[]", () => {
+    defineCollection({
+      name: "test",
+      fields: {
+        field: {
+          type: "string",
+          name: "field",
+        },
+        field2: {
+          name: "field2",
+          type: "string",
+          embed: {
+            // @ts-expect-error This is erroring as expected
+            from: ["field"],
+            model_config: {
+              model_name: "test",
+            },
+          },
+        },
+      },
+    });
+  });
 });
 
 describe("InferNativeType tests", () => {
   it("can infer the native type of a string", () => {
-    const schema = defineCollectionSchema({
+    const schema = defineCollection({
       name: "test",
       fields: {
         field: {
@@ -199,7 +241,7 @@ describe("InferNativeType tests", () => {
     expectTypeOf<InferNativeType<typeof schema.fields>>().toEqualTypeOf<{ field: string }>();
   });
   it("can infer the native type of a string array", () => {
-    const schema = defineCollectionSchema({
+    const schema = defineCollection({
       name: "test",
       fields: {
         field: {
@@ -212,7 +254,7 @@ describe("InferNativeType tests", () => {
     expectTypeOf<InferNativeType<typeof schema.fields>>().toEqualTypeOf<{ field: string[] }>();
   });
   it("can infer the native type of an int32", () => {
-    const schema = defineCollectionSchema({
+    const schema = defineCollection({
       name: "test",
       fields: {
         field: {
@@ -225,7 +267,7 @@ describe("InferNativeType tests", () => {
     expectTypeOf<InferNativeType<typeof schema.fields>>().toEqualTypeOf<{ field: number }>();
   });
   it("can infer the native type of a int32 array", () => {
-    const schema = defineCollectionSchema({
+    const schema = defineCollection({
       name: "test",
       fields: {
         field: {
@@ -238,7 +280,7 @@ describe("InferNativeType tests", () => {
     expectTypeOf<InferNativeType<typeof schema.fields>>().toEqualTypeOf<{ field: number[] }>();
   });
   it("can infer the native type of an int64", () => {
-    const schema = defineCollectionSchema({
+    const schema = defineCollection({
       name: "test",
       fields: {
         field: {
@@ -251,7 +293,7 @@ describe("InferNativeType tests", () => {
     expectTypeOf<InferNativeType<typeof schema.fields>>().toEqualTypeOf<{ field: number }>();
   });
   it("can infer the native type of a int64 array", () => {
-    const schema = defineCollectionSchema({
+    const schema = defineCollection({
       name: "test",
       fields: {
         field: {
@@ -264,7 +306,7 @@ describe("InferNativeType tests", () => {
     expectTypeOf<InferNativeType<typeof schema.fields>>().toEqualTypeOf<{ field: number[] }>();
   });
   it("can infer the native type of a float", () => {
-    const schema = defineCollectionSchema({
+    const schema = defineCollection({
       name: "test",
       fields: {
         field: {
@@ -277,7 +319,7 @@ describe("InferNativeType tests", () => {
     expectTypeOf<InferNativeType<typeof schema.fields>>().toEqualTypeOf<{ field: number }>();
   });
   it("can infer the native type of a float array", () => {
-    const schema = defineCollectionSchema({
+    const schema = defineCollection({
       name: "test",
       fields: {
         field: {
@@ -290,7 +332,7 @@ describe("InferNativeType tests", () => {
     expectTypeOf<InferNativeType<typeof schema.fields>>().toEqualTypeOf<{ field: number[] }>();
   });
   it("can infer the native type of a boolean", () => {
-    const schema = defineCollectionSchema({
+    const schema = defineCollection({
       name: "test",
       fields: {
         field: {
@@ -303,7 +345,7 @@ describe("InferNativeType tests", () => {
     expectTypeOf<InferNativeType<typeof schema.fields>>().toEqualTypeOf<{ field: boolean }>();
   });
   it("can infer the native type of a boolean array", () => {
-    const schema = defineCollectionSchema({
+    const schema = defineCollection({
       name: "test",
       fields: {
         field: {
@@ -316,7 +358,7 @@ describe("InferNativeType tests", () => {
     expectTypeOf<InferNativeType<typeof schema.fields>>().toEqualTypeOf<{ field: boolean[] }>();
   });
   it("can infer the native type of an geopoint", () => {
-    const schema = defineCollectionSchema({
+    const schema = defineCollection({
       name: "test",
       fields: {
         field: {
@@ -331,7 +373,7 @@ describe("InferNativeType tests", () => {
     }>();
   });
   it("can infer the native type of an geopoint array", () => {
-    const schema = defineCollectionSchema({
+    const schema = defineCollection({
       name: "test",
       fields: {
         field: {
@@ -346,7 +388,7 @@ describe("InferNativeType tests", () => {
     }>();
   });
   it("can infer the native type of an auto", () => {
-    const schema = defineCollectionSchema({
+    const schema = defineCollection({
       name: "test",
       fields: {
         field: {
@@ -361,7 +403,7 @@ describe("InferNativeType tests", () => {
     }>();
   });
   it("can infer the native type of a wildcard string", () => {
-    const schema = defineCollectionSchema({
+    const schema = defineCollection({
       name: "test",
       fields: {
         field: {
@@ -374,7 +416,7 @@ describe("InferNativeType tests", () => {
     expectTypeOf<InferNativeType<typeof schema.fields>>().toEqualTypeOf<{ field: string }>();
   });
   it("can infer the native type of a base64 encoded image", () => {
-    const schema = defineCollectionSchema({
+    const schema = defineCollection({
       name: "test",
       fields: {
         field: {
@@ -387,7 +429,7 @@ describe("InferNativeType tests", () => {
     expectTypeOf<InferNativeType<typeof schema.fields>>().toEqualTypeOf<{ field: Base64 }>();
   });
   it("can infer optional fields", () => {
-    const schema = defineCollectionSchema({
+    const schema = defineCollection({
       name: "test",
       fields: {
         field: {
@@ -403,7 +445,7 @@ describe("InferNativeType tests", () => {
     }>();
   });
   it("can infer the native type of an object with no children keys", () => {
-    const schema = defineCollectionSchema({
+    const schema = defineCollection({
       name: "test",
       fields: {
         field: {
@@ -418,7 +460,7 @@ describe("InferNativeType tests", () => {
     }>();
   });
   it("can infer the native type of an object with children keys", () => {
-    const schema = defineCollectionSchema({
+    const schema = defineCollection({
       name: "test",
       fields: {
         field: {
@@ -451,7 +493,7 @@ describe("InferNativeType tests", () => {
     }>();
   });
   it("can infer the native type of an object with children keys and optional fields", () => {
-    const schema = defineCollectionSchema({
+    const schema = defineCollection({
       name: "test",
       fields: {
         field: {
